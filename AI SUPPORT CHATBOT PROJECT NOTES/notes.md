@@ -44,6 +44,9 @@ End Customers → website pe chatbot se baat karte hain
 | Database | MongoDB (via Mongoose) | Business settings/knowledge store karna |
 | AI | Google Gemini (`@google/genai`) | Customer queries ka jawab generate karna |
 | Auth | ScaleKit (OAuth) | Login/session management |
+
+
+
 | Styling | Tailwind CSS | UI styling |
 | Animation | Framer Motion (`motion/react`) | UI animations |
 | Embed Widget | Vanilla JavaScript | Framework-free script jo kisi bhi site pe chale |
@@ -425,18 +428,20 @@ const handleLogin = () => {
 
 ## 🐛 4. Bugs/Issues Found (Code Review Summary)
 
-| # | Issue | Severity | Fix |
-|---|---|---|---|
-| 1 | `/api/settings`, `/api/settings/get`, `/api/chat` mein session/auth check nahi hai — client-provided `ownerId` trust ho raha hai (IDOR) | 🔴 Critical | Server-side session se `ownerId` nikaalo, client se mat lo |
-| 2 | `/embed` route middleware matcher mein missing hai | 🔴 Critical | `config.matcher` mein `/embed/:path*` add karo |
-| 3 | Cookie `maxAge: 24*60*60*1000` — seconds ki jagah milliseconds diye | 🟠 Important | `24 * 60 * 60` karo |
-| 4 | Cookie `secure: false` hardcoded | 🟠 Important | `process.env.NODE_ENV === "production"` use karo |
-| 5 | `chatBot.js` mein hardcoded `localhost:3000` URL | 🔴 Critical (prod breaks) | `new URL(scriptTag.src).origin` se dynamic derive karo |
-| 6 | `/api/chat` par koi rate limiting nahi | 🟠 Important | Rate limiter add karo (cost/abuse control) |
-| 7 | `connectDb()` pehle bina `await` ke call ho raha tha | 🟡 Minor (fixed later) | `await connectDb()` |
-| 8 | Raw error object client ko bhej rahe (`chat error ${error}`) | 🟡 Minor | Generic message do, actual error server logs mein rakho |
-| 9 | Hindi/line-number debug comments production code mein reh gaye | 🟢 Cosmetic | Clean up karo |
-| 10 | Typo: "Loding..." | 🟢 Cosmetic | "Loading..." |
+| # | Issue | Severity | Fix | Status |
+|---|---|---|---|---|
+| 1 | `/api/settings`, `/api/settings/get` mein session/auth check nahi tha — client-provided `ownerId` trust ho raha tha (IDOR) | 🔴 Critical | Server-side session (`getSession()`) se `ownerId` nikaala, client se lena band kiya | ✅ Fixed |
+| 2 | `/embed` route middleware matcher mein missing tha | 🔴 Critical | `config.matcher` mein `/embed/:path*` add kiya | ✅ Fixed |
+| 3 | Cookie `maxAge: 24*60*60*1000` — seconds ki jagah milliseconds diye the | 🟠 Important | `24 * 60 * 60` (seconds) kiya | ✅ Fixed |
+| 4 | Cookie `secure: false` hardcoded tha | 🟠 Important | `process.env.NODE_ENV === "production"` use kiya | ✅ Fixed |
+| 5 | `chatBot.js` mein hardcoded `localhost:3000` URL | 🔴 Critical (prod breaks) | `new URL(scriptTag.src).origin` se dynamic derive karna | ⏳ Pending |
+| 6 | `/api/chat` par koi rate limiting nahi | 🟠 Important | Rate limiter add karna (cost/abuse control) | ⏳ Pending |
+| 7 | `connectDb()` pehle bina `await` ke call ho raha tha | 🟡 Minor | `await connectDb()` | ✅ Fixed |
+| 8 | Raw error object client ko bhej rahe (`chat error ${error}`) | 🟡 Minor | Generic message do, actual error server logs mein rakho | ⏳ Pending |
+| 9 | Hindi/line-number debug comments production code mein reh gaye | 🟢 Cosmetic | Clean up karna | ⏳ Pending |
+| 10 | Typo: "Loding..." | 🟢 Cosmetic | "Loading..." | ⏳ Pending |
+
+**Note:** `/api/chat` mein `ownerId` client se lena zaroori hai (widget ko anonymous visitors call karte hain, unka login session nahi hota) — isliye ye "bug" nahi hai, bas ensure kiya gaya ki ye route sirf **read-only** rahe (kabhi data write/update na kare).
 
 ---
 
