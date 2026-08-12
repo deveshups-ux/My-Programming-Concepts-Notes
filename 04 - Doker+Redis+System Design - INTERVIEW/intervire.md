@@ -421,4 +421,138 @@ COPY . .          # ye baad me, taaki upar wala cache rahe
 
 ---
 
-*Practice karne ka best tareeka: Ye saare questions khud se, bina answer dekhe, bolke (loud) answer karne ki koshish karo — jaha atko, wahi wapas padho. Fir doosre din phir se try karo bina dekhe.*
+# 🎯 SYSTEM DESIGN — Interview Question Bank (Easy → Medium → Hard)
+
+> Practice tareeka: Khud se, bina answer dekhe, loud bolke jawab do. Jaha atko, wahi wapas padho.
+
+---
+
+# 🟢 EASY LEVEL
+
+**Q1. System Design kya hai?**
+> System Design ek process hai scalable, reliable, fast, aur production-ready software architectures banane ka. Isme decide karte hain ki components (servers, databases, caches) kaise ek dusre se connect honge, taaki system real-world traffic aur failures handle kar sake.
+
+**Q2. Scaling kya hai?**
+> System ki capacity badhana taaki zyada users/traffic handle ho sake, bina performance kharab kiye.
+
+**Q3. Vertical Scaling aur Horizontal Scaling me kya farak hai?**
+> **Vertical** — ek hi server ko powerful banana (CPU/RAM badhana). **Horizontal** — naye servers add karna (same size ke multiple servers). Vertical ki limit hoti hai (hardware ki max capacity) aur expensive hoti hai; Horizontal modern, scalable approach hai.
+
+**Q4. Load Balancer kya hai?**
+> Ek component jo incoming traffic ko multiple backend servers ke beech distribute karta hai, taaki koi ek server overload na ho aur baaki khaali na baithe rahein.
+
+**Q5. Nginx kya hai?**
+> Ek reverse proxy aur load balancer jo users aur backend servers ke beech traffic manage karta hai. Ye SSL termination, routing, aur caching bhi handle kar sakta hai.
+
+**Q6. Reverse Proxy kya hota hai?**
+> Ek server jo client ki requests ko lekar backend server(s) tak forward karta hai, aur response wapas client ko de deta hai — client ko backend ka pata nahi chalta ki actual kaam kaha ho raha hai.
+
+**Q7. Monolith Architecture kya hai?**
+> Ek single, large application jisme sab modules (Auth, Product, Order etc.) ek hi codebase, ek hi backend, ek hi database ke saath chalte hain.
+
+**Q8. Microservices Architecture kya hai?**
+> Application ko chhote, independent services me todna — har service apna alag kaam karti hai (Auth Service, Product Service), apna alag database/deployment ho sakta hai.
+
+**Q9. Database Replication kya hai?**
+> Same data ko multiple database servers pe copy karna — ek Primary (writes ke liye) aur multiple Secondary (reads + backup ke liye).
+
+**Q10. Database Sharding kya hai?**
+> Data ko divide karke multiple databases (shards) me distribute karna — har shard data ka ek hissa store karta hai, poora data nahi.
+
+---
+
+# 🟡 MEDIUM LEVEL
+
+**Q11. API Gateway aur Load Balancer me kya farak hai?**
+> **API Gateway** alag-alag kaam wali services ke beech route karta hai (jaise `/auth` → Auth Service, `/products` → Product Service). **Load Balancer** same kaam karne wale multiple copies ke beech traffic baantta hai (jaise Product Service ki 3 copies me se kisi ek ko). Dono saath use hote hain — Gateway "WHICH SERVICE" decide karta hai, uske peeche Load Balancer "WHICH COPY" decide karta hai.
+
+**Q12. Round Robin load balancing algorithm kya hai, aur iski limitation kya hai?**
+> Requests ko servers ke beech baari-baari se distribute karna (Request1→Server1, Request2→Server2, ...). **Limitation**: Ye ye nahi dekhta ki koi server already busy/slow hai — bas blindly cycle karta hai. Isliye agar servers ki capacity alag-alag ho, ya kisi server pe already heavy request chal rahi ho, tab bhi usko naya load mil sakta hai.
+
+**Q13. `least_conn` aur `ip_hash` load balancing strategies kab use karte ho?**
+> `least_conn` — jab servers ki processing capacity ya request complexity varying ho, taaki jo server kam busy hai usko zyada traffic mile. `ip_hash` — jab **session persistence** chahiye ho (same client hamesha same server pe jaaye) — jaise agar server-side sessions store ho rahi hain memory me (Redis use nahi kar rahe).
+
+**Q14. Replication me "Read Scaling" kaise hoti hai, aur iski ek limitation batao.**
+> Multiple Secondary replicas read traffic ko share karte hain — jitne zyada replicas, utna zyada read capacity. **Limitation**: **Replication Lag** — Secondary ka data Primary se thoda "peeche" ho sakta hai (async replication me), isliye agar tum turant write karke turant wahi data read karo (khaaskar Secondary se), purana data mil sakta hai.
+
+**Q15. Sharding ke liye "Shard Key" kya hoti hai, aur isko galat choose karne se kya problem hoti hai?**
+> Shard Key wo field hai jiske basis pe data ko shards me baanta jaata hai (jaise `user_id`). Agar galat choose ki (jaise koi field jiski values mostly same hi hon), to data **unevenly distribute** ho jaayega — kuch shards overloaded honge, kuch khaali — isko **"Hot Shard" problem** kehte hain.
+
+**Q16. Monolith se Microservices me migrate karne ka sabse bada challenge kya hai?**
+> Data consistency aur inter-service communication. Monolith me sab ek hi DB/transaction me tha (ACID guarantees easy), Microservices me har service ka apna DB ho sakta hai — isliye **distributed transactions** aur **eventual consistency** handle karna padta hai, jo complex hai.
+
+**Q17. Docker Volume kyun zaroori hai database containers ke liye?**
+> Containers ephemeral hote hain — delete/restart hone pe andar ka data gayab ho jaata hai. Volume data ko container ke bahar (host pe) persist karta hai, taaki container life-cycle se database ka data independent rahe.
+
+**Q18. `docker-compose.yml` me service-to-service communication `localhost` se kyun nahi hoti?**
+> Docker Compose me har service apna alag container hai, apna alag network namespace hai. `localhost` container ke andar sirf **usi container khud** ko refer karta hai. Services ek dusre se **service name** se baat karte hain, kyunki same Docker network pe hone ki wajah se Docker internal DNS provide karta hai.
+
+**Q19. Health Check kya hota hai Load Balancer ke context me?**
+> Load Balancer periodically har backend server ko ek chhota request (`GET /health`) bhejta hai check karne ke liye "ye server abhi zinda/ready hai ya nahi". Agar server jawab na de (kayi baar), LB usko "unhealthy" maan ke traffic bhejna band kar deta hai — bina manual intervention ke.
+
+**Q20. Rate Limiting System Design me kyun zaroori hai, aur ye kaha implement karte ho — Load Balancer pe ya application pe?**
+> Bina rate limiting ke koi bhi client (ya attacker) system ko spam/overload kar sakta hai. Ise **dono** jagah implement kar sakte ho — API Gateway/Nginx level pe (poore system ki protection ke liye, generic), aur application level pe (Redis-based, specific endpoints ke liye jaise login attempts).
+
+---
+
+# 🔴 HARD LEVEL
+
+**Q21. Agar tumhara Primary Database down ho jaaye, kya hoga aur system kaise recover karega?**
+> Agar proper **failover mechanism** set hai (jaise MongoDB ka Replica Set with automatic election), ek Secondary automatically **naya Primary** ban jaata hai (**automatic failover**) — bina manual intervention. Is beech thoda downtime ho sakta hai (election process ke dauraan writes fail ho sakti hain). Agar failover setup nahi hai, to writes completely ruk jaayengi jab tak koi manually naya Primary designate na kare.
+
+**Q22. Sharded database me agar ek Shard crash ho jaaye, poora system down ho jaata hai kya?**
+> **Nahi, poora system down nahi hota** — sirf us Shard ka data (jis users/range ka wo Shard responsible tha) unavailable hoga, baaki Shards normally kaam karte rahenge. Ye Sharding ka fayda hai (Monolith DB ke comparison me — wahan pura DB down ho jaata). Lekin agar har Shard khud bhi ek Replica Set hai (jaisa production setup hota hai), to Shard ke andar bhi failover ho jaayega aur koi downtime nahi hoga.
+
+**Q23. Cache Stampede (Thundering Herd) problem kya hai System Design context me, aur kaise solve karte ho? (Nginx/LB level pe)**
+> Jab ek popular cached response expire ho jaaye, aur us waqt hazaaron requests ek saath aayein — sab cache-miss dekh kar backend ko hit karte hain, jisse backend overload ho sakta hai. **Solutions**: Request coalescing (pehli request DB/backend hit kare, baaki wait karein), staggered/randomized cache expiry (sab ek saath expire na ho), ya stale-while-revalidate pattern (purana data serve karo jab tak fresh na aa jaaye).
+
+**Q24. API Gateway khud ek bottleneck/single point of failure ban sakta hai — kaise handle karte ho?**
+> API Gateway ki bhi **multiple instances** banate hain (horizontally scale karte hain), aur unke upar bhi ek Load Balancer laga dete hain. Isse agar ek Gateway instance down ho, traffic doosre instance pe chala jaata hai — poora system down nahi hota.
+
+**Q25. Consistent Hashing kya hai, aur Sharding me normal hashing se better kyun hai?**
+> Normal hashing (`hash(key) % num_shards`) me agar tum ek naya shard add/remove karo, **almost saara data reshuffle** karna padta hai (kyunki modulo ka result badal jaata hai). **Consistent Hashing** ek technique hai jisme shards aur keys dono ko ek "ring" pe map karte hain — naya shard add/remove karne pe **sirf uske paas wala data** move hota hai, baaki sab jagah same rehta hai. Ye large-scale distributed systems (jaise DynamoDB, Cassandra) me use hoti hai.
+
+**Q26. Read Replica se turant read karne pe purana data milne ki problem (Replication Lag) ko kaise solve/mitigate karte ho?**
+> Kayi approaches: (1) **Read-your-writes consistency** — jis user ne write kiya, uski agli read request ko Primary se serve karo, baaki users ko Replica se. (2) Write ke turant baad critical reads ko Primary se karwao. (3) Application-level me "sticky session to primary" thodi der ke liye. (4) Sync replication use karo (lekin isse writes slow ho jaate hain — trade-off hai).
+
+**Q27. CAP Theorem kya hai, aur ye System Design decisions ko kaise affect karta hai?**
+> CAP Theorem kehta hai ek distributed system **Consistency, Availability, aur Partition Tolerance** — teeno ek saath guarantee nahi kar sakta, sirf 2 hi ek time pe. **Partition Tolerance** (network fail hone pe bhi system chalte rehna) generally non-negotiable hoti hai distributed systems me, isliye asli choice **Consistency vs Availability** ke beech hoti hai. Replication design karte waqt ye decide karna padta hai — jaise MongoDB by default **Availability** ki taraf jhukta hai (Secondary se stale read allow karta hai), jabki kuch systems strict Consistency choose karte hain (thoda downtime accept karke).
+
+**Q28. Agar tumse poocha jaaye "Design a system that handles 1 million concurrent users" — kaha se shuru karoge?**
+> Structured approach: (1) **Requirements clarify karo** — read-heavy hai ya write-heavy? Real-time chahiye? (2) **Back-of-envelope estimation** — kitna traffic, kitna data, kitna storage rough andaza. (3) **High-level design** — Load Balancer → API Gateway → Services → Cache → Database layers banao. (4) **Deep dive** — jo sabse critical/bottleneck-prone hissa hai (usually Database), uspe zyada focus karo — Replication/Sharding decide karo. (5) **Trade-offs discuss karo** — Consistency vs Availability, cost vs performance. *(Interviewer ye process dekhna chahta hai, ek "perfect" answer nahi.)*
+
+**Q29. Microservices me ek service doosri service ko call karti hai — agar wo service slow/down ho, poora system crash na ho, iske liye kya design pattern use karte ho?**
+> **Circuit Breaker Pattern** — agar ek service baar-baar fail/timeout ho rahi hai, circuit breaker "trip" ho jaata hai aur kuch der ke liye us service ko call karna band kar deta hai (turant fail return karta hai, ya fallback response deta hai), taaki poora system us ek slow service ki wajah se block na ho jaaye. Kuch der baad phir try karta hai ("half-open" state).
+
+**Q30. Database Sharding aur Microservices ka database-per-service pattern — dono me "data divide" ho raha hai, farak kya hai?**
+> **Sharding** — **same** service/table ka data horizontally divide hota hai (jaise Users table, user_id ke hisaab se 3 shards me) — schema same hai sab jagah. **Database-per-service** — **alag-alag services** (Auth, Product, Order) ka apna **completely alag database/schema** hota hai — ye data ka logical separation hai (by domain), Sharding ka data ka physical/horizontal separation hai (by key range, same domain ke andar).
+
+---
+
+# 🎬 SCENARIO-BASED QUESTIONS (Bahut Common Interview Format)
+
+**Q31. "Tumhara e-commerce app ka Product listing API bahut slow hai — 3 second lag raha hai. Kaise debug/fix karoge?"**
+> **Kaise answer do**: "Pehle pata karunga bottleneck kaha hai — DB query slow hai, ya network, ya application logic. Agar DB query heavy hai aur data zyada change nahi hota, **Redis caching** lagaunga (Cache-Aside pattern). Agar traffic bahut zyada hai ek server pe, **Horizontal Scaling + Load Balancer** consider karunga. Agar DB hi bottleneck hai bahut saare products ki wajah se, **indexing** check karunga pehle, phir zaroorat pade to **Sharding**."
+
+**Q32. "Tumhara system 100 users se 100,000 users tak scale ho gaya achanak (viral ho gaya) — step by step kya karoge?"**
+> "Pehle **Vertical Scaling** se turant server upgrade karunga (quick fix). Parallel me **Horizontal Scaling** plan karunga — multiple app instances + Load Balancer. **Caching layer (Redis)** add karunga read-heavy endpoints ke liye. Database pe pehle **Replication** (read scaling), agar writes bhi bottleneck hain to **Sharding** consider karunga. Aur **monitoring/alerting** set karunga taaki future spikes pehle se pata chalein."
+
+**Q33. "Tum Microservices me ho, aur Order Service ko Payment Service ka data chahiye turant — kaise design karoge?"**
+> "Do options: **Synchronous** (Order Service directly Payment Service ko API call kare — simple lekin agar Payment slow ho to Order bhi slow ho jaayega) ya **Asynchronous** (Message Queue jaise BullMQ/Kafka use karke Order Service event publish kare, Payment Service usko consume kare — decoupled, resilient, lekin thoda complex aur turant response nahi milta). Agar turant response chahiye (user wait kar raha hai), Synchronous with timeout+circuit breaker. Agar background processing chalega, Asynchronous better hai."
+
+**Q34. "Tumhare paas ek chat application hai — real-time messages deliver karni hain lakhon users ko. System design kaise karoge?"**
+> "**WebSockets** use karunga (HTTP ke bajaye) real-time bidirectional communication ke liye. Scaling ke liye — multiple WebSocket servers, aur unke beech **Redis Pub/Sub** use karunga taaki agar User A Server1 se connected hai aur User B Server2 se, tab bhi messages sync ho sakein (Redis ek central "broadcast" mechanism ban jaata hai). Load Balancer me **`ip_hash`/sticky sessions** use karunga taaki same user hamesha same WebSocket server se connected rahe."
+
+---
+
+# 💡 Interview Me Answer Dene Ka Tareeka (Recap)
+
+1. **Definition + Analogy + Real Example** — teeno do, sirf ratta mat maaro.
+2. **Trade-offs bolna seekho** — "X better hai lekin Y cost aati hai" — depth dikhata hai.
+3. **Scenario questions me structured approach dikhao** — Clarify → Estimate → High-level design → Deep dive → Trade-offs.
+4. **"Failure case" hamesha socho** — "agar ye component fail ho jaaye to?" — iska jawab tayyar rakho har concept ke liye.
+5. **Apne khud ke project ka example do jaha bhi ho sake** — generic answer se zyada convincing lagta hai.
+
+---
+
+*Practice karne ka best tareeka: Har question ko loud bolke answer karo, bina yahan dekhe. Jaha atko, wahi concept file (System_Design_Complete_Notes.md) me wapas jaake padho.*
